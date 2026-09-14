@@ -184,6 +184,7 @@
 
   <div class="row">
     <button class="chip ok" id="tOpen" aria-pressed="true">🟢 Ouvert maintenant</button>
+    <button class="chip" id="tHours" aria-pressed="false" title="Filtre optionnel : n’affiche que les lieux qui ont des horaires dans OSM.">⏱️ Horaires connus</button>
     <button class="chip" id="tMap" aria-pressed="false">🗺️ Carte</button>
     <button class="btn ghost" id="reset">Tout remettre à zéro</button>
     <span class="count" id="count"></span>
@@ -374,6 +375,7 @@ const S = {
   radMin:10, sort:'dist', openOnly:true, map:false, pick:null,
   healthyMin:0, // 0..100 (score dérivé OSM)
   priceMin:0,   // 0..100 (désactivé tant qu’on n’a pas une source libre solide)
+  hoursKnownOnly:false,
 };
 const $ = id => document.getElementById(id);
 const WALK = 5000/60; // m/min
@@ -404,6 +406,7 @@ function matches(p){
   for(const f of S.flags) if(!(p.f||[]).includes(f)) return false;
   if(distOf(p) > S.radMin*WALK) return false;
   if(S.openOnly && p._st.state==='closed') return false;
+  if(S.hoursKnownOnly && !p.oh) return false;
 
   // "Healthy" est un score dérivé (0..100) basé sur les tags OSM.
   if((p.h ?? 0) < S.healthyMin) return false;
@@ -569,6 +572,9 @@ function init(){
   });
   $('tOpen').addEventListener('click', e=>{
     S.openOnly=!S.openOnly; e.currentTarget.setAttribute('aria-pressed',String(S.openOnly)); render();
+  });
+  $('tHours').addEventListener('click', e=>{
+    S.hoursKnownOnly=!S.hoursKnownOnly; e.currentTarget.setAttribute('aria-pressed',String(S.hoursKnownOnly)); render();
   });
   $('tMap').addEventListener('click', e=>{
     S.map=!S.map; e.currentTarget.setAttribute('aria-pressed',String(S.map));
