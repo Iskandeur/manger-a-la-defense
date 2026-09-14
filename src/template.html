@@ -167,6 +167,22 @@
   </div>
 
   <div class="row">
+    <label class="lbl" for="healthy">
+      Healthy : <span id="healthyLbl">0</span>/100 min
+      <button class="chip" id="healthyHelp" type="button" title="Healthy n’est PAS une note nutritionnelle. C’est un score dérivé des tags OpenStreetMap (cuisine + diet:* + organic + type + marque). Appuie ici pour voir la recette.">ⓘ</button>
+    </label>
+    <input type="range" id="healthy" min="0" max="100" step="5" value="0">
+  </div>
+
+  <div class="row" id="priceRow">
+    <label class="lbl" for="price">
+      Cher : <span id="priceLbl">indisponible</span>
+      <button class="chip" id="priceHelp" type="button" title="OpenStreetMap ne contient pas de prix. Je cherche une source libre et redistribuable (Wikidata, menus publics, etc.). Tant que ce n’est pas solide, ce slider reste désactivé.">ⓘ</button>
+    </label>
+    <input type="range" id="price" min="0" max="100" step="5" value="0" disabled>
+  </div>
+
+  <div class="row">
     <button class="chip ok" id="tOpen" aria-pressed="true">🟢 Ouvert maintenant</button>
     <button class="chip" id="tMap" aria-pressed="false">🗺️ Carte</button>
     <button class="btn ghost" id="reset">Tout remettre à zéro</button>
@@ -190,7 +206,7 @@
           Le filtre « ouvert maintenant » les garde donc visibles, signalées.</li>
       <li>Les horaires viennent de la carte, pas du restaurant : un jour férié, des congés ou un changement récent
           ne s'y voient pas. Appelle avant de traverser la dalle.</li>
-      <li>Aucun prix : OSM n'en porte quasiment jamais. Aucune note, aucun avis, aucun classement sponsorisé — c'est volontaire.</li>
+      <li><strong>Prix</strong> : OpenStreetMap n’en porte quasiment jamais, et je ne veux pas inventer. Tant qu’on n’a pas une source libre et redistribuable, le slider « cher » reste désactivé.</li>
       <li>Les distances sont à vol d'oiseau depuis le repère choisi, converties à 5 km/h.
           Sur la dalle, compte un ou deux escalators en plus.</li>
       <li>Une erreur, un fermé, un manquant ? <a href="https://www.openstreetmap.org/" rel="noopener">Corrige-le dans OpenStreetMap</a> —
@@ -356,6 +372,8 @@ const cuisineFr = c => CUISINE_FR[c] || CUISINE_FR[c.toLowerCase()] || c.replace
 const S = {
   anchor:'4temps', geo:null, q:'', kinds:new Set(), cuisines:new Set(), flags:new Set(),
   radMin:10, sort:'dist', openOnly:true, map:false, pick:null,
+  healthyMin:0, // 0..100 (score dérivé OSM)
+  priceMin:0,   // 0..100 (désactivé tant qu’on n’a pas une source libre solide)
 };
 const $ = id => document.getElementById(id);
 const WALK = 5000/60; // m/min
@@ -386,6 +404,13 @@ function matches(p){
   for(const f of S.flags) if(!(p.f||[]).includes(f)) return false;
   if(distOf(p) > S.radMin*WALK) return false;
   if(S.openOnly && p._st.state==='closed') return false;
+
+  // "Healthy" est un score dérivé (0..100) basé sur les tags OSM.
+  if((p.h ?? 0) < S.healthyMin) return false;
+
+  // "Prix" : désactivé tant qu'on n'a pas une source libre solide.
+  // Quand on aura p.p (0..100), on fera : if((p.p ?? 0) < S.priceMin) return false;
+
   if(S.q){
     const q = norm(S.q);
     const hay = norm([p.n, p.a||'', p.city||'', p.br||'', ...p.c.map(cuisineFr), KINDS[p.k].l].join(' '));
@@ -434,7 +459,6 @@ function render(){
       + hours
       + '<div class="acts">'
       +   '<a href="'+gmaps+'" rel="noopener" target="_blank">🧭 Itinéraire</a>'
-      +   (p.tel?'<a href="tel:'+esc(p.tel.replace(/\s/g,''))+'">📞 '+esc(p.tel)+'</a>':'')
       +   (p.w?'<a href="'+esc(p.w)+'" rel="noopener nofollow" target="_blank">🔗 Site</a>':'')
       +   '<a href="'+osm+'" rel="noopener" target="_blank">✏️ Corriger</a>'
       + '</div>'
@@ -521,6 +545,28 @@ function init(){
   $('rad').addEventListener('input', e=>{
     S.radMin=+e.target.value; $('radLbl').textContent=S.radMin+' min'; render();
   });
+
+  $('healthy').addEventListener('input', e=>{
+    S.healthyMin=+e.target.value; $('healthyLbl').textContent=String(S.healthyMin); render();
+  });
+  $('healthyHelp').addEventListener('click', ()=>{
+    alert(
+      'Healthy = un score dérivé des tags OpenStreetMap, pas une note nutritionnelle.\n\n'
+      + 'Recette (grossière) :\n'
+      + '• base 50/100\n'
+      + '• +35 si vegan:only ou vegetarian:only ; +20 si vegan/veg=yes\n'
+      + '• +8 si organic=yes\n'
+      + '• ajustement léger selon le type (rapide/bar/sucré ↓, traiteur ↑)\n'
+      + '• ajustement cuisine très léger (salad/poké/healthy ↑ ; burger/kebab/pizza ↓)\n'
+      + '• -4 si marque (chaîne)\n\n'
+      + 'C’est surtout utile pour filtrer “plutôt healthy” sans inventer un classement.'
+    );
+  });
+
+  // Slider prix : désactivé tant qu'on n'a pas une source libre solide.
+  $('priceHelp').addEventListener('click', ()=>{
+    alert('Prix indisponible : OpenStreetMap n’a quasiment jamais de prix, et je ne veux pas inventer.\n\nSi on trouve une source libre + redistribuable, je l’ajoute.');
+  });
   $('tOpen').addEventListener('click', e=>{
     S.openOnly=!S.openOnly; e.currentTarget.setAttribute('aria-pressed',String(S.openOnly)); render();
   });
@@ -531,6 +577,9 @@ function init(){
   $('reset').addEventListener('click', ()=>{
     S.q=''; $('q').value=''; S.kinds.clear(); S.cuisines.clear(); S.flags.clear();
     S.radMin=10; $('rad').value=10; $('radLbl').textContent='10 min';
+
+    S.healthyMin=0; $('healthy').value=0; $('healthyLbl').textContent='0';
+
     S.openOnly=true; $('tOpen').setAttribute('aria-pressed','true'); S.pick=null;
     document.querySelectorAll('.chip[data-v]').forEach(b=>b.setAttribute('aria-pressed','false'));
     render();

@@ -39,7 +39,9 @@ function mk(id: string): Node {
 }
 const els = new Map<string, Node>()
 const IDS = ['total','total2','ohCount','gen','now','openNow','anchor','kinds','cuisines','flags',
-             'q','dice','geo','rad','radLbl','sort','tOpen','tMap','reset','count','results','empty','map']
+             'q','dice','geo','rad','radLbl','sort',
+             'healthy','healthyLbl','healthyHelp','price','priceLbl','priceHelp',
+             'tOpen','tMap','reset','count','results','empty','map']
 for (const id of IDS) els.set(id, mk(id))
 
 const fire = (id: string, ev: string, target?: any) => {

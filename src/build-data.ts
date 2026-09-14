@@ -38,6 +38,46 @@ const KIND: Record<string, string> = {
 }
 const SHOP_KIND: Record<string, string> = { bakery: 'boulangerie', pastry: 'sucre', deli: 'traiteur', sandwich: 'rapide' }
 
+function clamp(n: number, a: number, b: number) {
+  return Math.max(a, Math.min(b, n))
+}
+
+function healthyScore(kind: string, cuisine: string[], tags: Record<string, string>, hasBrand: boolean, isOrganic: boolean) {
+  // ⚠️ Ce score n'est PAS une vérité nutritionnelle : c'est un proxy basé sur des tags OSM.
+  // But : permettre un tri/filtre "plutôt healthy" sans inventer une note externe.
+  let s = 50
+
+  // Tag diet:* : le signal le plus fort quand il existe.
+  const veg = tags['diet:vegetarian']
+  const vegan = tags['diet:vegan']
+  if (vegan === 'only' || veg === 'only') s += 35
+  else if (vegan === 'yes' || veg === 'yes') s += 20
+
+  if (isOrganic) s += 8
+
+  // Type : proxy grossier (un bar n'est pas "healthy" par défaut).
+  const kindAdj: Record<string, number> = {
+    restaurant: 0,
+    traiteur: 6,
+    boulangerie: -6,
+    cafe: -10,
+    bar: -18,
+    rapide: -14,
+    sucre: -20,
+  }
+  s += kindAdj[kind] ?? 0
+
+  // Cuisine : très léger, et seulement quand c'est explicite.
+  const c = new Set(cuisine.map((x) => x.toLowerCase()))
+  if (c.has('salad') || c.has('salad bar') || c.has('poke') || c.has('healthy')) s += 8
+  if (c.has('burger') || c.has('kebab') || c.has('french_tacos') || c.has('pizza') || c.has('fried_chicken') || c.has('chicken')) s -= 6
+
+  // Marque : on ne pénalise pas fort, mais une chaîne est rarement "healthy" par défaut.
+  if (hasBrand) s -= 4
+
+  return clamp(Math.round(s), 0, 100)
+}
+
 function clean(v?: string) {
   return v && v.trim() ? v.trim() : undefined
 }
@@ -76,12 +116,21 @@ for (const e of raw.elements) {
     k: kind,
     c: cuisine,
   }
+
+  const hasBrand = Boolean(clean(t.brand))
+  const isOrganic = (t.organic === 'yes' || t['diet:organic'] === 'only' || t['diet:organic'] === 'yes')
+  p.h = healthyScore(kind, cuisine, t, hasBrand, isOrganic)
   if (clean(t.opening_hours)) p.oh = t.opening_hours.trim()
   if (clean(t.level)) p.lvl = t.level.trim()
   if (addrParts) p.a = addrParts
   if (city) p.city = city
-  if (clean(t.phone) ?? clean(t['contact:phone'])) p.tel = (t.phone ?? t['contact:phone']).split(';')[0].trim()
-  if (clean(t.website) ?? clean(t['contact:website'])) p.w = (t.website ?? t['contact:website']).split(';')[0].trim()
+
+  // Téléphones/emails : même si souvent publics (commerces), on évite de republier ça par défaut.
+  // Objectif : garder une page "zéro trace" et passer le preflight public sans autorisations ad hoc.
+  // Si on veut réintroduire ces champs, il faudra une politique explicite.
+  const website = clean(t.website) ?? clean(t['contact:website'])
+  if (website && !website.includes('@') && !website.toLowerCase().startsWith('mailto:')) p.w = website.split(';')[0].trim()
+
   if (clean(t.brand)) p.br = t.brand.trim()
 
   const flags: string[] = []
@@ -95,6 +144,9 @@ for (const e of raw.elements) {
   if (t.internet_access === 'wlan' || t['internet_access'] === 'yes') flags.push('wifi')
   if (t.air_conditioning === 'yes') flags.push('clim')
   if (flags.length) p.f = flags
+
+  // Rare mais utile pour un score "healthy" dérivé.
+  if (isOrganic) p.org = true
 
   // Indice de prix : OSM ne porte quasi jamais de prix. On se rabat sur le type + la marque.
   out.push(p)

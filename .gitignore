@@ -1,0 +1,3 @@
+# Données brutes Overpass (contient parfois des coordonnées de contact) :
+# on s'en sert pour régénérer data.json mais on ne la publie pas dans le repo.
+src/raw.json
