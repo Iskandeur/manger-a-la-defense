@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Où manger à La Défense ?</title>
+<meta name="description" content="321 restaurants, sandwicheries, boulangeries et bars de La Défense. Filtre ce qui est ouvert maintenant, trie par distance depuis ta tour, et laisse le hasard trancher quand tu n'as pas d'idée.">
+<meta name="theme-color" content="#0b1020">
+<meta property="og:title" content="Où manger à La Défense ?">
+<meta property="og:description" content="Ouvert maintenant, à 3 minutes de ta tour. 321 adresses, zéro pub, zéro compte.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
+<style>
+  :root{
+    --bg:#f6f5f2; --bg2:#fff; --ink:#14161c; --ink2:#5b6170; --line:#e3e1dc;
+    --accent:#1f5fd8; --accent-soft:#e8f0ff; --ok:#0f7b52; --ok-soft:#e2f5ec;
+    --warn:#8a5a00; --warn-soft:#fdf2dc; --off:#8c3a3a; --off-soft:#fbeaea;
+    --shadow:0 1px 2px rgba(20,22,28,.06),0 8px 24px -16px rgba(20,22,28,.25);
+    --r:14px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0b1020; --bg2:#141a2e; --ink:#eef1f7; --ink2:#98a1b8; --line:#242c45;
+      --accent:#6ea0ff; --accent-soft:#17223f; --ok:#5ed6a4; --ok-soft:#0f2a22;
+      --warn:#e8b661; --warn-soft:#2c2212; --off:#f08c8c; --off-soft:#2e1717;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -18px rgba(0,0,0,.8);
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);color:var(--ink);
+    font:16px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:0 16px 64px}
+  header{padding:28px 0 14px}
+  h1{font-size:clamp(24px,5vw,34px);line-height:1.15;margin:0 0 6px;letter-spacing:-.02em}
+  h1 span{color:var(--accent)}
+  .sub{color:var(--ink2);font-size:14.5px;margin:0}
+  .clock{font-variant-numeric:tabular-nums}
+
+  /* ---- barre de contrôles ---- */
+  .panel{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;margin:16px 0}
+  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .row+.row{margin-top:12px}
+  label.lbl{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);font-weight:600;width:100%;margin-bottom:-2px}
+  input[type=search],select{
+    font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);
+    border-radius:10px;padding:9px 12px;min-width:0
+  }
+  input[type=search]{flex:1 1 180px}
+  select{flex:1 1 200px;max-width:100%}
+  input[type=range]{flex:1 1 160px;accent-color:var(--accent)}
+  .chip{
+    font:inherit;font-size:14px;cursor:pointer;background:var(--bg);color:var(--ink);
+    border:1px solid var(--line);border-radius:999px;padding:6px 13px;transition:.12s
+  }
+  .chip:hover{border-color:var(--accent)}
+  .chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+  .chip.ok[aria-pressed=true]{background:var(--ok);border-color:var(--ok)}
+  .btn{
+    font:inherit;font-weight:600;cursor:pointer;border-radius:10px;padding:9px 15px;
+    background:var(--accent);color:#fff;border:1px solid transparent
+  }
+  .btn.ghost{background:transparent;color:var(--accent);border-color:var(--line)}
+  .btn:active{transform:translateY(1px)}
+  .count{margin-left:auto;color:var(--ink2);font-size:13.5px;font-variant-numeric:tabular-nums}
+
+  /* ---- liste ---- */
+  ul.list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+  li.card{
+    background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);
+    padding:13px 14px;box-shadow:var(--shadow)
+  }
+  li.card.pick{outline:3px solid var(--accent);outline-offset:2px}
+  .ctop{display:flex;gap:10px;align-items:flex-start}
+  .nm{font-weight:650;font-size:17px;letter-spacing:-.01em;margin:0;flex:1 1 auto;min-width:0}
+  .dist{
+    flex:0 0 auto;text-align:right;font-variant-numeric:tabular-nums;
+    color:var(--ink2);font-size:13px;line-height:1.25
+  }
+  .dist b{display:block;font-size:15px;color:var(--ink);font-weight:650}
+  .meta{color:var(--ink2);font-size:13.5px;margin:5px 0 0;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
+  .tag{
+    font-size:12px;font-weight:600;border-radius:6px;padding:2px 7px;
+    background:var(--accent-soft);color:var(--accent)
+  }
+  .st{font-size:12.5px;font-weight:650;border-radius:6px;padding:2px 8px}
+  .st.o{background:var(--ok-soft);color:var(--ok)}
+  .st.s{background:var(--warn-soft);color:var(--warn)}
+  .st.c{background:var(--off-soft);color:var(--off)}
+  .st.u{background:var(--bg);color:var(--ink2);border:1px solid var(--line)}
+  .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+  .acts a{
+    font-size:13px;text-decoration:none;color:var(--ink2);border:1px solid var(--line);
+    border-radius:8px;padding:4px 10px;background:var(--bg)
+  }
+  .acts a:hover{color:var(--accent);border-color:var(--accent)}
+  .hrs{font-size:12.5px;color:var(--ink2);margin-top:6px;font-variant-numeric:tabular-nums}
+  .empty{text-align:center;color:var(--ink2);padding:36px 12px}
+  .arrow{display:inline-block;font-size:11px;opacity:.8}
+
+  /* ---- carte ---- */
+  #map{height:min(62vh,460px);border-radius:var(--r);border:1px solid var(--line);display:none;margin:16px 0;background:var(--bg2)}
+  #map.on{display:block}
+  .leaflet-popup-content{font:14px/1.4 ui-sans-serif,system-ui,sans-serif}
+
+  footer{margin-top:34px;padding-top:18px;border-top:1px solid var(--line);color:var(--ink2);font-size:13px}
+  footer a{color:var(--accent)}
+  details.limits summary{cursor:pointer;font-weight:600;color:var(--ink);margin-bottom:6px}
+  details.limits ul{margin:6px 0 0;padding-left:18px}
+  details.limits li{margin:3px 0}
+  .skip{position:absolute;left:-9999px}
+  .skip:focus{left:8px;top:8px;background:var(--bg2);padding:8px;border-radius:8px;z-index:9}
+</style>
+</head>
+<body>
+<a class="skip" href="#results">Aller aux résultats</a>
+<div class="wrap">
+
+<header>
+  <h1>Où manger à <span>La Défense</span> ?</h1>
+  <p class="sub">
+    <strong id="total">…</strong> adresses cartographiées sur la dalle et autour.
+    Il est <span class="clock" id="now">…</span> —
+    <strong id="openNow">…</strong> sont ouvertes d'après leurs horaires.
+  </p>
+</header>
+
+<section class="panel" aria-label="Filtres">
+  <div class="row">
+    <label class="lbl" for="q">Chercher</label>
+    <input type="search" id="q" placeholder="nom, cuisine, rue…" autocomplete="off" spellcheck="false">
+    <button class="btn" id="dice" title="Choisit au hasard parmi les résultats affichés">🎲 Décide pour moi</button>
+  </div>
+
+  <div class="row">
+    <label class="lbl" for="anchor">Je pars de</label>
+    <select id="anchor"></select>
+    <button class="btn ghost" id="geo" title="Utiliser ma position GPS">📍 Ma position</button>
+  </div>
+
+  <div class="row">
+    <label class="lbl">Type</label>
+    <div class="row" id="kinds" role="group" aria-label="Type de lieu"></div>
+  </div>
+
+  <div class="row">
+    <label class="lbl">Envie de</label>
+    <div class="row" id="cuisines" role="group" aria-label="Cuisine"></div>
+  </div>
+
+  <div class="row">
+    <label class="lbl">Critères</label>
+    <div class="row" id="flags" role="group" aria-label="Critères"></div>
+  </div>
+
+  <div class="row">
+    <label class="lbl" for="rad">À pied : <span id="radLbl">10 min</span> max</label>
+    <input type="range" id="rad" min="2" max="20" step="1" value="10">
+    <select id="sort" aria-label="Tri">
+      <option value="dist">Trier : le plus proche</option>
+      <option value="name">Trier : ordre alphabétique</option>
+      <option value="kind">Trier : par type</option>
+    </select>
+  </div>
+
+  <div class="row">
+    <button class="chip ok" id="tOpen" aria-pressed="true">🟢 Ouvert maintenant</button>
+    <button class="chip" id="tMap" aria-pressed="false">🗺️ Carte</button>
+    <button class="btn ghost" id="reset">Tout remettre à zéro</button>
+    <span class="count" id="count"></span>
+  </div>
+</section>
+
+<div id="map" aria-label="Carte des lieux"></div>
+
+<ul class="list" id="results"></ul>
+<p class="empty" id="empty" hidden>Rien ne correspond. Élargis le rayon, ou décoche « ouvert maintenant ».</p>
+
+<footer>
+  <details class="limits">
+    <summary>D'où viennent ces données, et ce qu'elles ne savent pas</summary>
+    <ul>
+      <li>Source : <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a>, licence ODbL,
+          extraction du <strong id="gen">…</strong> via l'API Overpass.</li>
+      <li><strong id="ohCount">…</strong> des <strong id="total2">…</strong> adresses portent des horaires dans OSM.
+          Les autres s'affichent « horaires inconnus » — elles ne sont pas fermées, on ne sait juste pas.
+          Le filtre « ouvert maintenant » les garde donc visibles, signalées.</li>
+      <li>Les horaires viennent de la carte, pas du restaurant : un jour férié, des congés ou un changement récent
+          ne s'y voient pas. Appelle avant de traverser la dalle.</li>
+      <li>Aucun prix : OSM n'en porte quasiment jamais. Aucune note, aucun avis, aucun classement sponsorisé — c'est volontaire.</li>
+      <li>Les distances sont à vol d'oiseau depuis le repère choisi, converties à 5 km/h.
+          Sur la dalle, compte un ou deux escalators en plus.</li>
+      <li>Une erreur, un fermé, un manquant ? <a href="https://www.openstreetmap.org/" rel="noopener">Corrige-le dans OpenStreetMap</a> —
+          ça profite à tout le monde, et ça remontera ici à la prochaine extraction.</li>
+    </ul>
+  </details>
+  <p>Fait par <strong>Lupi</strong> 🐺 · aucun compte, aucun cookie, aucun traceur · tout tourne dans ton navigateur.</p>
+</footer>
+
+</div>
+
+<script>
+const DB = /*__DATA__*/null/*__END__*/;
+
+/* ------------------------------------------------------------------ *
+ * Horaires OSM : évaluateur du sous-ensemble réellement présent ici.
+ * Gère : 24/7 · règles séparées par ';' · jours Mo-Fr / Sa / Mo,We ·
+ *        plages 12:00-15:00,18:30-23:00 · 'off'/'closed' · nuit (11:00-02:00)
+ * Ne gère PAS : jours fériés, semaines paires, "sunrise", saisons →
+ * ces règles sont ignorées et le lieu passe en "horaires inconnus".
+ * ------------------------------------------------------------------ */
+const DAYS = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+const DAYIDX = {Su:0,Mo:1,Tu:2,We:3,Th:4,Fr:5,Sa:6};
+const DAYFR = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+
+function parseOH(s){
+  if(!s) return null;
+  s = s.trim();
+  if(/24\/7/.test(s)) return {always:true, spans:[]};
+  if(/(PH|SH|easter|sunrise|sunset|week |[0-9]{4}|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/i.test(s)) {
+    // règle avec une dimension qu'on ne sait pas évaluer → on retire ces morceaux
+    s = s.split(';').filter(r=>!/(PH|SH|easter|sunrise|sunset|week |[0-9]{4}|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/i.test(r)).join(';');
+    if(!s.trim()) return null;
+  }
+  // byDay[0..6] = liste des plages du jour. Vide = fermé ce jour-là.
+  const byDay = [[],[],[],[],[],[],[]];
+  let any = false;
+
+  // Une règle = (jours optionnels)(plages horaires | off). Le séparateur est ';' OU ',' —
+  // mais la virgule sépare aussi les jours entre eux ("Mo,We") et les plages entre elles
+  // ("12:00-15:00,18:30-23:00"). D'où un balayage par groupes plutôt qu'un split naïf :
+  // "Sa-Th 11:00-02:00, Fr 14:00-02:00" doit donner DEUX règles, pas une (sinon Fr est perdu).
+  const DAY = '(?:Mo|Tu|We|Th|Fr|Sa|Su)';
+  const RULE = new RegExp(
+    '(' + DAY + '(?:-' + DAY + ')?(?:\\s*,\\s*' + DAY + '(?:-' + DAY + ')?)*\\s+)?' +
+    '(\\d{1,2}:\\d{2}\\s*-\\s*\\d{1,2}:\\d{2}(?:\\s*,\\s*\\d{1,2}:\\d{2}\\s*-\\s*\\d{1,2}:\\d{2})*|off|closed)',
+    'gi'
+  );
+
+  for(const m of s.matchAll(RULE)){
+    const dayPart = (m[1]||'').trim();
+    const timePart = (m[2]||'').trim();
+    const days = dayPart ? expandDays(dayPart) : [0,1,2,3,4,5,6];
+    if(!days.length) continue;
+    any = true;
+    // Sémantique OSM : une règle postérieure REMPLACE ce que l'on savait des jours qu'elle nomme.
+    // C'est ce qui fait que "Mo-Su 07:00-20:00; We off" ferme bien le mercredi.
+    for(const d of days) byDay[d] = [];
+    if(/^(off|closed)$/i.test(timePart)) continue;
+    for(const rg of timePart.match(/\d{1,2}:\d{2}\s*-\s*\d{1,2}:\d{2}/g) || []){
+      const [a,b] = rg.split('-').map(x=>x.trim());
+      const from = toMin(a); let to = toMin(b);
+      if(to <= from) to += 1440;           // service de nuit : déborde sur le lendemain
+      for(const d of days) byDay[d].push({from, to});
+    }
+  }
+  for(const d of byDay) d.sort((a,b)=>a.from-b.from);
+  return any ? {always:false, byDay} : null;
+}
+function expandDays(part){
+  const out = [];
+  for(const blk of part.split(',')){
+    const b = blk.trim();
+    if(b.includes('-')){
+      const [a,z] = b.split('-').map(x=>x.trim());
+      let i = DAYIDX[a], end = DAYIDX[z];
+      if(i==null||end==null) continue;
+      for(let k=0;k<7;k++){ out.push(i); if(i===end) break; i=(i+1)%7; }
+    } else if(DAYIDX[b]!=null) out.push(DAYIDX[b]);
+  }
+  return [...new Set(out)];
+}
+const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+const fmt = m => String(Math.floor((m%1440)/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+
+/** @returns {state:'open'|'soon'|'closed'|'unknown', until?:number, next?:string, label:string} */
+function status(oh, now){
+  const p = parseOH(oh);
+  if(!p) return {state:'unknown', label:'horaires inconnus'};
+  if(p.always) return {state:'open', label:'ouvert 24 h/24'};
+  const day = now.getDay(), mins = now.getHours()*60 + now.getMinutes();
+
+  // Le service de la VEILLE peut encore courir (bar ouvert jusqu'à 02:00).
+  for(const s of p.byDay[(day+6)%7])
+    if(s.to > 1440 && mins < s.to-1440){
+      const left = (s.to-1440) - mins;
+      return left<=45 ? {state:'soon', label:'ferme à '+fmt(s.to), until:left}
+                      : {state:'open', label:'ouvert jusqu’à '+fmt(s.to)};
+    }
+  for(const s of p.byDay[day])
+    if(mins>=s.from && mins<s.to){
+      const left = s.to - mins;
+      return left<=45 ? {state:'soon', label:'ferme à '+fmt(s.to), until:left}
+                      : {state:'open', label:'ouvert jusqu’à '+fmt(s.to)};
+    }
+  return {
+    state:'closed',
+    label: p.byDay[day].length ? 'fermé' : 'fermé aujourd’hui',
+    next: nextOpen(p, day, mins)
+  };
+}
+function nextOpen(p, day, mins){
+  for(let k=0;k<8;k++){
+    const d=(day+k)%7;
+    const cand = p.byDay[d].filter(s=>k>0 || s.from>mins)[0];
+    if(cand) return (k===0 ? 'rouvre à ' : k===1 ? 'demain ' : DAYFR[d]+' ') + fmt(cand.from);
+  }
+  return '';
+}
+function todayHours(oh, day){
+  const p = parseOH(oh);
+  if(!p) return '';
+  if(p.always) return '24 h/24, 7 j/7';
+  const sp = p.byDay[day];
+  if(!sp.length) return 'fermé aujourd’hui';
+  return sp.map(s=>fmt(s.from)+'–'+fmt(s.to)).join(' · ');
+}
+
+/* ------------------------------------------------------------------ *
+ * Vocabulaire
+ * ------------------------------------------------------------------ */
+const KINDS = {
+  restaurant:{l:'Restaurant', e:'🍽️'},
+  rapide:{l:'Sur le pouce', e:'🥪'},
+  boulangerie:{l:'Boulangerie', e:'🥖'},
+  cafe:{l:'Café', e:'☕'},
+  bar:{l:'Bar', e:'🍺'},
+  traiteur:{l:'Traiteur', e:'🥗'},
+  sucre:{l:'Sucré', e:'🍰'},
+};
+const CUISINE_FR = {
+  japanese:'japonais', burger:'burger', italian:'italien', french:'français', sandwich:'sandwich',
+  pizza:'pizza', salad:'salade', asian:'asiatique', chinese:'chinois', coffee_shop:'coffee shop',
+  kebab:'kebab', thai:'thaï', lebanese:'libanais', chicken:'poulet', vietnamese:'vietnamien',
+  korean:'coréen', poke:'poké', crepe:'crêpes', sushi:'sushi', moroccan:'marocain', tea:'thé',
+  ramen:'ramen', mediterranean:'méditerranéen', bubble_tea:'bubble tea', coffee:'café',
+  steak_house:'grill', healthy:'healthy', pie:'tourtes', bagel:'bagel', greek:'grec',
+  turkish:'turc', regional:'régional', couscous:'couscous', mexican:'mexicain', cake:'pâtisserie',
+  indian:'indien', portuguese:'portugais', french_tacos:'tacos', 'salad bar':'salade',
+  seafood:'poisson', spanish:'espagnol', african:'africain', tapas:'tapas', noodle:'nouilles',
+  breakfast:'petit-déj', international:'international', fish_and_chips:'fish & chips', deli:'traiteur',
+};
+const FLAG_FR = {
+  terrasse:{l:'☀️ Terrasse'}, veg:{l:'🌱 Végé'}, halal:{l:'🕌 Halal'},
+  emporter:{l:'🥡 À emporter'}, pmr:{l:'♿ Accès PMR'}, wifi:{l:'📶 Wi-Fi'},
+};
+const norm = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const cuisineFr = c => CUISINE_FR[c] || CUISINE_FR[c.toLowerCase()] || c.replace(/_/g,' ');
+
+/* ------------------------------------------------------------------ *
+ * État
+ * ------------------------------------------------------------------ */
+const S = {
+  anchor:'4temps', geo:null, q:'', kinds:new Set(), cuisines:new Set(), flags:new Set(),
+  radMin:10, sort:'dist', openOnly:true, map:false, pick:null,
+};
+const $ = id => document.getElementById(id);
+const WALK = 5000/60; // m/min
+
+function distOf(p){
+  if(S.geo){
+    const dy=(p.lat-S.geo.lat)*111320, dx=(p.lon-S.geo.lon)*111320*Math.cos(p.lat*Math.PI/180);
+    return Math.round(Math.hypot(dx,dy));
+  }
+  return p.d[S.anchor] ?? 9999;
+}
+function bearingOf(p){
+  const o = S.geo || DB.anchors.find(a=>a.id===S.anchor);
+  if(!o) return '';
+  const dy=(p.lat-o.lat), dx=(p.lon-o.lon)*Math.cos(p.lat*Math.PI/180);
+  const deg=(Math.atan2(dx,dy)*180/Math.PI+360)%360;
+  return ['↑','↗','→','↘','↓','↙','←','↖'][Math.round(deg/45)%8];
+}
+
+/* ------------------------------------------------------------------ *
+ * Rendu
+ * ------------------------------------------------------------------ */
+let NOW = new Date();
+
+function matches(p){
+  if(S.kinds.size && !S.kinds.has(p.k)) return false;
+  if(S.cuisines.size && !p.c.some(c=>S.cuisines.has(c.toLowerCase()))) return false;
+  for(const f of S.flags) if(!(p.f||[]).includes(f)) return false;
+  if(distOf(p) > S.radMin*WALK) return false;
+  if(S.openOnly && p._st.state==='closed') return false;
+  if(S.q){
+    const q = norm(S.q);
+    const hay = norm([p.n, p.a||'', p.city||'', p.br||'', ...p.c.map(cuisineFr), KINDS[p.k].l].join(' '));
+    if(!hay.includes(q)) return false;
+  }
+  return true;
+}
+
+function render(){
+  NOW = new Date();
+  for(const p of DB.places) p._st = p.oh ? status(p.oh, NOW) : {state:'unknown', label:'horaires inconnus'};
+
+  const list = DB.places.filter(matches);
+  const ORDER = {open:0, soon:1, unknown:2, closed:3};
+  list.sort((a,b)=>{
+    if(S.sort==='name') return a.n.localeCompare(b.n,'fr');
+    if(S.sort==='kind') return a.k.localeCompare(b.k) || distOf(a)-distOf(b);
+    return (ORDER[a._st.state]-ORDER[b._st.state]) || (distOf(a)-distOf(b));
+  });
+
+  $('count').textContent = list.length + (list.length>1?' adresses':' adresse');
+  $('empty').hidden = list.length>0;
+  $('now').textContent = NOW.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  $('openNow').textContent = DB.places.filter(p=>p._st.state==='open'||p._st.state==='soon').length + ' au moins';
+
+  const day = NOW.getDay();
+  $('results').innerHTML = list.map(p=>{
+    const d = distOf(p), min = Math.max(1, Math.round(d/WALK));
+    const st = p._st;
+    const cls = st.state==='open'?'o':st.state==='soon'?'s':st.state==='closed'?'c':'u';
+    const gmaps = 'https://www.google.com/maps/dir/?api=1&destination='+p.lat+','+p.lon;
+    const osm = 'https://www.openstreetmap.org/'+(p.id[0]==='n'?'node':p.id[0]==='w'?'way':'relation')+'/'+p.id.slice(1);
+    const cuis = p.c.map(cuisineFr).slice(0,3).map(c=>'<span class="tag">'+esc(c)+'</span>').join('');
+    const lvl = p.lvl!=null ? '<span>niveau '+esc(p.lvl)+'</span>' : '';
+    const flags = (p.f||[]).filter(f=>FLAG_FR[f]).map(f=>'<span>'+FLAG_FR[f].l+'</span>').join('');
+    const hours = p.oh ? '<div class="hrs">Aujourd’hui : '+esc(todayHours(p.oh, day))+(st.next?' · '+esc(st.next):'')+'</div>' : '';
+    return '<li class="card'+(S.pick===p.id?' pick':'')+'" id="c'+p.id+'">'
+      + '<div class="ctop">'
+      +   '<p class="nm">'+KINDS[p.k].e+' '+esc(p.n)+'</p>'
+      +   '<div class="dist"><b>'+min+' min</b>'+d+' m <span class="arrow">'+bearingOf(p)+'</span></div>'
+      + '</div>'
+      + '<p class="meta"><span class="st '+cls+'">'+esc(st.label)+'</span>'
+      +   '<span>'+KINDS[p.k].l+'</span>'+cuis+lvl+flags
+      +   (p.a?'<span>'+esc(p.a)+(p.city?', '+esc(p.city):'')+'</span>':'')
+      + '</p>'
+      + hours
+      + '<div class="acts">'
+      +   '<a href="'+gmaps+'" rel="noopener" target="_blank">🧭 Itinéraire</a>'
+      +   (p.tel?'<a href="tel:'+esc(p.tel.replace(/\s/g,''))+'">📞 '+esc(p.tel)+'</a>':'')
+      +   (p.w?'<a href="'+esc(p.w)+'" rel="noopener nofollow" target="_blank">🔗 Site</a>':'')
+      +   '<a href="'+osm+'" rel="noopener" target="_blank">✏️ Corriger</a>'
+      + '</div>'
+      + '</li>';
+  }).join('');
+
+  if(S.map) drawMap(list);
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+/* ------------------------------------------------------------------ *
+ * Carte (Leaflet chargé à la demande — si le CDN tombe, la liste reste)
+ * ------------------------------------------------------------------ */
+let L = null, mapObj = null, layer = null;
+async function drawMap(list){
+  if(!L){
+    try{
+      await load('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css','css');
+      await load('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js','js');
+      L = window.L;
+    }catch(e){ $('map').innerHTML='<p class="empty">La carte n’a pas pu se charger. La liste ci-dessous reste complète.</p>'; return; }
+  }
+  if(!mapObj){
+    mapObj = L.map('map').setView([48.8905,2.2405], 15);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      maxZoom:19, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(mapObj);
+  }
+  if(layer) layer.remove();
+  layer = L.layerGroup(list.map(p=>{
+    const c = p._st.state==='open'?'#0f7b52':p._st.state==='closed'?'#b35a5a':'#8a8f9c';
+    return L.circleMarker([p.lat,p.lon],{radius:6,color:c,weight:2,fillColor:c,fillOpacity:.65})
+      .bindPopup('<b>'+esc(p.n)+'</b><br>'+KINDS[p.k].l+' · '+esc(p._st.label)
+        +'<br><a href="https://www.google.com/maps/dir/?api=1&destination='+p.lat+','+p.lon+'" target="_blank" rel="noopener">Itinéraire</a>');
+  })).addTo(mapObj);
+  setTimeout(()=>mapObj.invalidateSize(),60);
+}
+function load(url, kind){
+  return new Promise((res,rej)=>{
+    const el = kind==='css' ? Object.assign(document.createElement('link'),{rel:'stylesheet',href:url})
+                            : Object.assign(document.createElement('script'),{src:url});
+    el.onload=res; el.onerror=rej; document.head.appendChild(el);
+  });
+}
+
+/* ------------------------------------------------------------------ *
+ * Interface
+ * ------------------------------------------------------------------ */
+function chipRow(el, items, set, onChange){
+  el.innerHTML = items.map(i=>'<button class="chip" data-v="'+esc(i.v)+'" aria-pressed="false">'+i.l+'</button>').join('');
+  el.addEventListener('click', e=>{
+    const b = e.target.closest('.chip'); if(!b) return;
+    const v = b.dataset.v;
+    if(set.has(v)){ set.delete(v); b.setAttribute('aria-pressed','false'); }
+    else { set.add(v); b.setAttribute('aria-pressed','true'); }
+    S.pick=null; onChange();
+  });
+}
+
+function init(){
+  $('total').textContent = DB.places.length;
+  $('total2').textContent = DB.places.length;
+  $('ohCount').textContent = DB.places.filter(p=>p.oh).length;
+  $('gen').textContent = new Date(DB.generated).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+
+  $('anchor').innerHTML = DB.anchors.map(a=>'<option value="'+a.id+'"'+(a.id===S.anchor?' selected':'')+'>'+esc(a.name)+'</option>').join('');
+
+  const kindCount = {};
+  for(const p of DB.places) kindCount[p.k] = (kindCount[p.k]||0)+1;
+  chipRow($('kinds'), Object.keys(KINDS).filter(k=>kindCount[k]).map(k=>({v:k, l:KINDS[k].e+' '+KINDS[k].l+' <small>'+kindCount[k]+'</small>'})), S.kinds, render);
+
+  const cc = {};
+  for(const p of DB.places) for(const c of p.c){ const k=c.toLowerCase(); cc[k]=(cc[k]||0)+1; }
+  const top = Object.entries(cc).filter(([,n])=>n>=4).sort((a,b)=>b[1]-a[1]).slice(0,14);
+  chipRow($('cuisines'), top.map(([c,n])=>({v:c, l:cuisineFr(c)+' <small>'+n+'</small>'})), S.cuisines, render);
+
+  const fc = {};
+  for(const p of DB.places) for(const f of (p.f||[])) fc[f]=(fc[f]||0)+1;
+  chipRow($('flags'), Object.keys(FLAG_FR).filter(f=>fc[f]).map(f=>({v:f, l:FLAG_FR[f].l+' <small>'+fc[f]+'</small>'})), S.flags, render);
+
+  $('q').addEventListener('input', e=>{ S.q=e.target.value; S.pick=null; render(); });
+  $('anchor').addEventListener('change', e=>{ S.anchor=e.target.value; S.geo=null; $('geo').setAttribute('aria-pressed','false'); render(); });
+  $('sort').addEventListener('change', e=>{ S.sort=e.target.value; render(); });
+  $('rad').addEventListener('input', e=>{
+    S.radMin=+e.target.value; $('radLbl').textContent=S.radMin+' min'; render();
+  });
+  $('tOpen').addEventListener('click', e=>{
+    S.openOnly=!S.openOnly; e.currentTarget.setAttribute('aria-pressed',String(S.openOnly)); render();
+  });
+  $('tMap').addEventListener('click', e=>{
+    S.map=!S.map; e.currentTarget.setAttribute('aria-pressed',String(S.map));
+    $('map').classList.toggle('on',S.map); render();
+  });
+  $('reset').addEventListener('click', ()=>{
+    S.q=''; $('q').value=''; S.kinds.clear(); S.cuisines.clear(); S.flags.clear();
+    S.radMin=10; $('rad').value=10; $('radLbl').textContent='10 min';
+    S.openOnly=true; $('tOpen').setAttribute('aria-pressed','true'); S.pick=null;
+    document.querySelectorAll('.chip[data-v]').forEach(b=>b.setAttribute('aria-pressed','false'));
+    render();
+  });
+  $('geo').addEventListener('click', e=>{
+    if(!navigator.geolocation) return alert('Ton navigateur ne partage pas la position.');
+    e.currentTarget.textContent='📍 …';
+    navigator.geolocation.getCurrentPosition(
+      pos=>{ S.geo={lat:pos.coords.latitude, lon:pos.coords.longitude};
+             $('geo').textContent='📍 Depuis ma position'; $('geo').setAttribute('aria-pressed','true'); render(); },
+      ()=>{ $('geo').textContent='📍 Ma position'; alert('Position refusée ou indisponible — choisis un repère dans la liste.'); },
+      {enableHighAccuracy:true, timeout:8000}
+    );
+  });
+  $('dice').addEventListener('click', ()=>{
+    const list = DB.places.filter(matches);
+    if(!list.length) return;
+    S.pick = list[Math.floor(Math.random()*list.length)].id;
+    S.sort='dist'; render();
+    const el = document.getElementById('c'+S.pick);
+    if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
+  });
+
+  render();
+  setInterval(render, 60000); // l'heure tourne : les statuts aussi
+}
+init();
+</script>
+</body>
+</html>

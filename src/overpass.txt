@@ -1,0 +1,6 @@
+[out:json][timeout:180];
+(
+  nwr["amenity"~"^(restaurant|fast_food|cafe|bar|pub|food_court|ice_cream)$"](48.8830,2.2230,48.8995,2.2590);
+  nwr["shop"~"^(bakery|deli|pastry|sandwich)$"](48.8830,2.2230,48.8995,2.2590);
+);
+out center tags;
