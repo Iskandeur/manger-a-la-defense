@@ -462,6 +462,7 @@ function render(){
       + hours
       + '<div class="acts">'
       +   '<a href="'+gmaps+'" rel="noopener" target="_blank">🧭 Itinéraire</a>'
+      +   (p.tel?'<a href="tel:'+esc(p.tel.replace(/\s/g,''))+'">📞 '+esc(p.tel)+'</a>':'')
       +   (p.w?'<a href="'+esc(p.w)+'" rel="noopener nofollow" target="_blank">🔗 Site</a>':'')
       +   '<a href="'+osm+'" rel="noopener" target="_blank">✏️ Corriger</a>'
       + '</div>'

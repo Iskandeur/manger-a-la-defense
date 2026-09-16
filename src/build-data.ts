@@ -125,9 +125,10 @@ for (const e of raw.elements) {
   if (addrParts) p.a = addrParts
   if (city) p.city = city
 
-  // Téléphones/emails : même si souvent publics (commerces), on évite de republier ça par défaut.
-  // Objectif : garder une page "zéro trace" et passer le preflight public sans autorisations ad hoc.
-  // Si on veut réintroduire ces champs, il faudra une politique explicite.
+  // Téléphone : celui que le commerce affiche lui-même sur la carte (phone / contact:phone), rien d'autre.
+  // Utile à 12h25 pour vérifier qu'un endroit est ouvert. Les emails restent exclus.
+  const phone = clean(t.phone) ?? clean(t['contact:phone'])
+  if (phone) p.tel = phone.split(';')[0].trim()
   const website = clean(t.website) ?? clean(t['contact:website'])
   if (website && !website.includes('@') && !website.toLowerCase().startsWith('mailto:')) p.w = website.split(';')[0].trim()
 
