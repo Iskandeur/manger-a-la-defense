@@ -2,9 +2,9 @@
 
 **→ [iskandeur.github.io/manger-a-la-defense](https://iskandeur.github.io/manger-a-la-defense/)**
 
-Il est 12 h 25, tu es au 27ᵉ étage, tu as trente-cinq minutes et aucune idée. C'est le problème que
+Il est 12 h 25, tu as trente-cinq minutes et aucune idée. C'est le problème que
 cette page résout : **321 adresses** de la dalle et des rues autour, filtrées par ce qui est
-**ouvert maintenant**, trié par **distance à pied depuis ta tour**.
+**ouvert maintenant**, trié par **distance à pied**.
 
 - 🟢 **Ouvert maintenant**, calculé depuis les horaires OpenStreetMap, réévalué chaque minute.
 - 📍 **Depuis où tu es** : choisis ton repère (Grande Arche, CNIT, Cœur Défense, Tour First…) ou
